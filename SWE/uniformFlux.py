@@ -20,7 +20,7 @@ execfile(os.path.join(sys.path[0],"operators.py"))
 execfile(os.path.join(sys.path[0],"initialConditions.py"))
 execfile(os.path.join(sys.path[0],"plots.py"))
 
-SMALL = 1e-4
+SMALL = 1e-9
 
 def main():
     # Parameters
@@ -67,8 +67,6 @@ def main():
         
             h1Atu = hAtu_upwind(h1,u1)
             h2Atu = hAtu_upwind(h2,u2)
-#            h1Atu = hAtu_centred(h1)
-#            h2Atu = hAtu_centred(h2)
         
             # Advect h1 and h2
             h1 = h1old - dt*dudx(h1Atu*u1, dx)
@@ -79,13 +77,8 @@ def main():
             for innerIter in range(1):
                 h1u1 = h1u1old - dt*(ddxUp(h1u1*u1, u1, dx) + h1*gradh)
                 h2u2 = h2u2old - dt*(ddxUp(h2u2*u2, u2, dx) + h2*gradh)
-                u1 = h1u1/(hAtu_centred(h1)+0.)
-                u2 = where(hAtu_centred(h2)>0., 
-                           h2u2/hAtu_centred(h2), 
-                           0)
-                           
-                # print (u1 == np.ones(len(xu))), (u2 == np.ones(len(xu)))
-                # print(u1)
+                u1 = h1u1/hAtu_centred(h1+SMALL)
+                u2 = h2u2/hAtu_centred(h2+SMALL)
         
         h1old = h1.copy()
         h2old = h2.copy()
