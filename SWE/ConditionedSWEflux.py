@@ -71,12 +71,24 @@ def main():
             # Advect h1 and h2
             h1 = h1old - dt*dudx(h1Atu*u1, dx)
             h2 = h2old - dt*dudx(h2Atu*u2, dx)
+
+#            # without upwinding
+#            h1 = h1old - dt*dudx(h1u1, dx)
+#            h2 = h2old - dt*dudx(h2u2, dx)
         
             # Update h1u1 and h2u2 with upwind advection
             gradh = dhdx(h1+h2, dx)
             for innerIter in range(1):
-                h1u1 = h1u1old - dt*(ddxUp(h1u1*u1, u1, dx) + h1*gradh)
-                h2u2 = h2u2old - dt*(ddxUp(h2u2*u2, u2, dx) + h2*gradh)
+                h1u1 = h1u1old - dt*\
+                (
+                    ddxUp(h1u1*u1, u1, dx)
+                  + hAtu_centred(h1)*gradh
+                )
+                h2u2 = h2u2old - dt*\
+                (
+                    ddxUp(h2u2*u2, u2, dx)
+                  + hAtu_centred(h2)*gradh
+                )
                 u1 = h1u1/hAtu_centred(h1+SMALL)
                 u2 = h2u2/hAtu_centred(h2+SMALL)
         
@@ -103,4 +115,3 @@ def main():
     
     plotEnergy(energy, KE1, KE2, dt)
 main()
-
