@@ -20,26 +20,28 @@ execfile(os.path.join(sys.path[0],"operators.py"))
 execfile(os.path.join(sys.path[0],"initialConditions.py"))
 execfile(os.path.join(sys.path[0],"plots.py"))
 
-SMALL = 1e-9
+SMALL = 0.
 
 def main():
     # Parameters
-    nx = 40
+    nx = 100
     nt = 200
-    dt = 0.005
-    squareWaveMin = 0.4
-    squareWaveMax = 0.6
-    dx = 1./nx
+    dt = 100
+    squareWaveMin = 4e6
+    squareWaveMax = 6e6
+    xmin = 0
+    xmax=18e6
+    dx = xmax/nx
 
     # Space for the u and p grids
-    xu = arange(0.,1.,dx)
-    xh = arange(0.5*dx, 1, dx)
+    xu = arange(xmin,xmax,dx)
+    xh = arange(0.5*dx, xmax, dx)
 
     # Initial conditions
-    h1 = 0.1 + 0.8*squareWave(xh, squareWaveMin, squareWaveMax)
-    h2 = 1-h1
-    u1 = np.ones(len(xu))
-    u2 = np.ones(len(xu))
+    h1 = 10. + 9980.*squareWave(xh, squareWaveMin, squareWaveMax)
+    h2 = 10000.-h1
+    u1 = 100.*np.ones(len(xu))
+    u2 = u1.copy()
     h1u1 = hAtu_centred(h1)*u1
     h2u2 = hAtu_centred(h2)*u2
     
@@ -75,8 +77,16 @@ def main():
             # Update h1u1 and h2u2 with upwind advection
             gradh = dhdx(h1+h2, dx)
             for innerIter in range(1):
-                h1u1 = h1u1old - dt*(ddxUp(h1u1*u1, u1, dx) + h1*gradh)
-                h2u2 = h2u2old - dt*(ddxUp(h2u2*u2, u2, dx) + h2*gradh)
+                h1u1 = h1u1old - dt*\
+                (
+                    ddxUp(h1u1*u1, u1, dx)
+                  + hAtu_centred(h1)*gradh
+                )
+                h2u2 = h2u2old - dt*\
+                (
+                    ddxUp(h2u2*u2, u2, dx)
+                  + hAtu_centred(h2)*gradh
+                )
                 u1 = h1u1/hAtu_centred(h1+SMALL)
                 u2 = h2u2/hAtu_centred(h2+SMALL)
         
@@ -103,4 +113,3 @@ def main():
     
     plotEnergy(energy, KE1, KE2, dt)
 main()
-
