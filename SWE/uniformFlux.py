@@ -24,13 +24,14 @@ SMALL = 0.
 
 def main():
     # Parameters
-    nx = 100
-    nt = 200
-    dt = 100
-    squareWaveMin = 4e6
-    squareWaveMax = 6e6
-    xmin = 0
-    xmax=18e6
+    nx = 30
+    nt = 10
+    dt = 0.02
+    g = 1.    # gravity
+    squareWaveMin = 0.42
+    squareWaveMax = 0.6
+    xmin = 0.
+    xmax=1.8
     dx = xmax/nx
 
     # Space for the u and p grids
@@ -38,9 +39,9 @@ def main():
     xh = arange(0.5*dx, xmax, dx)
 
     # Initial conditions
-    h1 = 10. + 9980.*squareWave(xh, squareWaveMin, squareWaveMax)
-    h2 = 10000.-h1
-    u1 = 100.*np.ones(len(xu))
+    h2 = .001 + .998*squareWave(xh, squareWaveMin, squareWaveMax)
+    h1 = 1-h2
+    u1 = np.ones(len(xu))
     u2 = u1.copy()
     h1u1 = hAtu_centred(h1)*u1
     h2u2 = hAtu_centred(h2)*u2
@@ -73,19 +74,19 @@ def main():
             # Advect h1 and h2
             h1 = h1old - dt*dudx(h1Atu*u1, dx)
             h2 = h2old - dt*dudx(h2Atu*u2, dx)
-        
+
             # Update h1u1 and h2u2 with upwind advection
             gradh = dhdx(h1+h2, dx)
             for innerIter in range(1):
                 h1u1 = h1u1old - dt*\
                 (
                     ddxUp(h1u1*u1, u1, dx)
-                  + hAtu_centred(h1)*gradh
+                  + hAtu_centred(h1)*g*gradh
                 )
                 h2u2 = h2u2old - dt*\
                 (
                     ddxUp(h2u2*u2, u2, dx)
-                  + hAtu_centred(h2)*gradh
+                  + hAtu_centred(h2)*g*gradh
                 )
                 u1 = h1u1/hAtu_centred(h1+SMALL)
                 u2 = h2u2/hAtu_centred(h2+SMALL)
@@ -107,7 +108,8 @@ def main():
         print("Normalised change in energy = ", (energy[it+1]-energy[0])/energy[0])
 
         # Plot the solution
-        plotSolution(xh, h1, h2, xu, u1, u2, it+1)
+        plotSolution(xh, h2, h1, xu, u2, u1, it+1)
+        plotUs(xu, u1, u2, it+1)
         if it%10 == 0:
             plotEnergy(energy, KE1, KE2, dt)
     

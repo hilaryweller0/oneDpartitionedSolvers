@@ -22,6 +22,25 @@ def plotSolution(xp, p, q, xu, u, v, time):
     title("Time "+str(time))
     savefig("plots/pquv_nx_" + str(len(xu)) + "_time_"+str(time)+".pdf")
 
+def plotUs(xu, u, v, time):
+    "Plots u,v as a function of xu and labels with time"
+    
+    figure(1)
+    font = {'size'   : 18}
+    rc('font', **font)
+    clf()
+#    ion()
+    plot(xu, u, label='$u_1$', color='cyan')
+    plot(xu, v, label='$u_2$', color='magenta')
+
+    axhline(0, linestyle=':', color='black')
+    axhline(1, linestyle=':', color='black')
+    legend(loc=2,ncol=4)
+    xlabel('$x$')
+#    ylim([-1.5,2])
+    title("Time "+str(time))
+    savefig("plots/uv_nx_" + str(len(xu)) + "_time_"+str(time)+".pdf")
+
 def plotEnergy(energy, KE1, KE2, dt):
 
     figure(2)
